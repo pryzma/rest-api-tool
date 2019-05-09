@@ -7,7 +7,7 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
-const generate = (function(){
+const create = (function(){
 
 
   const config = () => {
@@ -230,7 +230,7 @@ const update = (function(){
 
 const config = (function(){
   const modules = [
-    { label : 'Generate', name : '-g', module : generate },
+    { label : 'Create', name : '-c', module : create },
     { label : 'Update', name : '-u', module : update }
   ]
 
