@@ -1,0 +1,27 @@
+{
+  "prefix": "api",
+  "port": "8081",
+  "db": {
+    "host": "localhost",
+    "user": "root",
+    "password": "root",
+    "database": "db"
+  },
+  "routes": [
+    {
+      "route": "test",
+      "key": "id",
+      "methods": [
+        "get",
+        "getAll",
+        "put",
+        "get",
+        "delete"
+      ],
+      "fields": [
+        "t",
+        "e"
+      ]
+    }
+  ]
+}
