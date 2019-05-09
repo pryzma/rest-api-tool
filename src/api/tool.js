@@ -12,7 +12,7 @@ const create = (function(){
 
   const config = () => {
 
-    console.log('Generate JSON configuration file')
+    console.log('Create JSON configuration file')
     let configName;
     let configObj = {}
     const configRouteFields = (configRouteObj) => {
@@ -38,16 +38,16 @@ const create = (function(){
         rl.question('Primary Key : ', (key) => {
           configRouteObj['key'] = key
           configRouteObj['methods'] = []
-          rl.question('Add GET (y): ', (get) => {
-            if( get === 'y' ) configRouteObj.methods.push('get')
+          rl.question('Add GET (y/n): ', (get) => {
+            if( get === 'y' || get === '' ) configRouteObj.methods.push('get')
             rl.question('Add GET all:', (getall) => {
-              if( getall === 'y' ) configRouteObj.methods.push('getAll')
+              if( getall === 'y' || getall === '' ) configRouteObj.methods.push('getAll')
               rl.question('Add PUT: ', (put) => {
-                if( put === 'y' ) configRouteObj.methods.push('put')
+                if( put === 'y' || put === '' ) configRouteObj.methods.push('put')
                 rl.question('Add POST: ', (post) => {
-                  if( post === 'y' ) configRouteObj.methods.push('get')
+                  if( post === 'y' || post === '') configRouteObj.methods.push('get')
                   rl.question('Add DELETE: ', (del) => {
-                    if( del === 'y' ) configRouteObj.methods.push('delete')
+                    if( del === 'y' || del === '' ) configRouteObj.methods.push('delete')
 
                     configRouteObj['fields'] = []
                     configRouteFields(configRouteObj)
@@ -75,28 +75,30 @@ const create = (function(){
     const configDatabase = () =>{
       rl.question('Database host : ', (host) => {
         configObj.db['host'] = host
-        rl.question('Port number : ', (port) => {
-          configObj.db['port'] = port;
-          rl.question('Database user : ', (user) => {
-            configObj.db['user'] = user
-            rl.question('Database password : ', (pass) => {
-              configObj.db['password'] = pass
-              rl.question('Database : ', (database) => {
-                configObj.db['database'] = database
-                configObj['routes'] = []
-                configRoute()
-              });
+
+        rl.question('Database user : ', (user) => {
+          configObj.db['user'] = user
+          rl.question('Database password : ', (pass) => {
+            configObj.db['password'] = pass
+            rl.question('Database : ', (database) => {
+              configObj.db['database'] = database
+              configObj['routes'] = []
+              configRoute()
             });
           });
         });
+
       });
     }
     rl.question('Name : ', (name) => {
       configName = name
       rl.question('API prefix : ', (prefix) => {
         configObj['prefix'] = prefix
-        configObj['db'] = {}
-        configDatabase()
+        rl.question('Port number : ', (port) => {
+          configObj['port'] = port
+          configObj['db'] = {}
+          configDatabase()
+        })
       });
     });
 
