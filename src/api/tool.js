@@ -1,5 +1,6 @@
 'use strict'
 const fs = require('fs');
+const mysql = require( 'mysql' );
 const path = require('path');
 const readline = require('readline');
 const rl = readline.createInterface({
@@ -35,23 +36,27 @@ const create = (function(){
         }else{
           return configFinalize()
         }
-        rl.question('Primary Key : ', (key) => {
-          configRouteObj['key'] = key
-          configRouteObj['methods'] = []
-          rl.question('Add GET (y/n): ', (get) => {
-            if( get === 'y' || get === '' ) configRouteObj.methods.push('get')
-            rl.question('Add GET all:', (getall) => {
-              if( getall === 'y' || getall === '' ) configRouteObj.methods.push('getAll')
-              rl.question('Add PUT: ', (put) => {
-                if( put === 'y' || put === '' ) configRouteObj.methods.push('put')
-                rl.question('Add POST: ', (post) => {
-                  if( post === 'y' || post === '') configRouteObj.methods.push('get')
-                  rl.question('Add DELETE: ', (del) => {
-                    if( del === 'y' || del === '' ) configRouteObj.methods.push('delete')
+        rl.question('Database Table', (table) => {
 
-                    configRouteObj['fields'] = []
-                    configRouteFields(configRouteObj)
+          configRouteObj['table'] = key
+          rl.question('Primary Key : ', (key) => {
+            configRouteObj['key'] = key
+            configRouteObj['methods'] = []
+            rl.question('Add GET (y/n): ', (get) => {
+              if( get === 'y' || get === '' ) configRouteObj.methods.push('get')
+              rl.question('Add GET all:', (getall) => {
+                if( getall === 'y' || getall === '' ) configRouteObj.methods.push('getAll')
+                rl.question('Add PUT: ', (put) => {
+                  if( put === 'y' || put === '' ) configRouteObj.methods.push('put')
+                  rl.question('Add POST: ', (post) => {
+                    if( post === 'y' || post === '') configRouteObj.methods.push('get')
+                    rl.question('Add DELETE: ', (del) => {
+                      if( del === 'y' || del === '' ) configRouteObj.methods.push('delete')
 
+                      configRouteObj['fields'] = []
+                      configRouteFields(configRouteObj)
+
+                    })
                   })
                 })
               })
@@ -81,9 +86,15 @@ const create = (function(){
           rl.question('Database password : ', (pass) => {
             configObj.db['password'] = pass
             rl.question('Database : ', (database) => {
-              configObj.db['database'] = database
-              configObj['routes'] = []
-              configRoute()
+              mysql.createConnection(database).connect((err) => {
+                if (err) {
+                  console.warn(`Error connecting to database '${}'` );
+                } else {
+                  configObj.db['database'] = database
+                  configObj['routes'] = []
+                  configRoute()
+                }
+
             });
           });
         });
@@ -145,7 +156,7 @@ const update = (function(){
 
         });
       }else{
-        console.log(`No configuration files in found, generate a new file with node api/tool -g config` )
+        console.log(`No configuration files in found, generate a new file with node api/tool -c config` )
         rl.close();
       }
     });
