@@ -1,5 +1,6 @@
 'use strict'
 const fs = require('fs');
+const mysql = require( 'mysql' );
 const path = require('path');
 const readline = require('readline');
 const rl = readline.createInterface({
@@ -12,9 +13,10 @@ const create = (function(){
 
   const config = () => {
 
-    console.log('Create JSON configuration file')
+
     let configName;
     let configObj = {}
+
     const configRouteFields = (configRouteObj) => {
       rl.question('Add field: ', (field) => {
         if( field != '' ){
@@ -27,6 +29,7 @@ const create = (function(){
 
       })
     }
+
     const configRoute = () => {
       let configRouteObj = {}
       rl.question('Route : ', (route) => {
@@ -35,23 +38,27 @@ const create = (function(){
         }else{
           return configFinalize()
         }
-        rl.question('Primary Key : ', (key) => {
-          configRouteObj['key'] = key
-          configRouteObj['methods'] = []
-          rl.question('Add GET (y/n): ', (get) => {
-            if( get === 'y' || get === '' ) configRouteObj.methods.push('get')
-            rl.question('Add GET all:', (getall) => {
-              if( getall === 'y' || getall === '' ) configRouteObj.methods.push('getAll')
-              rl.question('Add PUT: ', (put) => {
-                if( put === 'y' || put === '' ) configRouteObj.methods.push('put')
-                rl.question('Add POST: ', (post) => {
-                  if( post === 'y' || post === '') configRouteObj.methods.push('get')
-                  rl.question('Add DELETE: ', (del) => {
-                    if( del === 'y' || del === '' ) configRouteObj.methods.push('delete')
+        rl.question('Database Table', (table) => {
 
-                    configRouteObj['fields'] = []
-                    configRouteFields(configRouteObj)
+          configRouteObj['table'] = key
+          rl.question('Primary Key : ', (key) => {
+            configRouteObj['key'] = key
+            configRouteObj['methods'] = []
+            rl.question('Add GET (y/n): ', (get) => {
+              if( get === 'y' || get === '' ) configRouteObj.methods.push('get')
+              rl.question('Add GET all:', (getall) => {
+                if( getall === 'y' || getall === '' ) configRouteObj.methods.push('getAll')
+                rl.question('Add PUT: ', (put) => {
+                  if( put === 'y' || put === '' ) configRouteObj.methods.push('put')
+                  rl.question('Add POST: ', (post) => {
+                    if( post === 'y' || post === '') configRouteObj.methods.push('get')
+                    rl.question('Add DELETE: ', (del) => {
+                      if( del === 'y' || del === '' ) configRouteObj.methods.push('delete')
 
+                      configRouteObj['fields'] = []
+                      configRouteFields(configRouteObj)
+
+                    })
                   })
                 })
               })
@@ -60,18 +67,27 @@ const create = (function(){
         })
       })
     }
-    const configFinalize = () =>{
-      configObj = JSON.stringify(configObj, null, 2)
-      console.log( configObj )
-      fs.writeFile(`./api/${configName}.json`, configObj, function(err) {
-        if(err) {
-          return console.log(err);
-        }
 
-        console.log(`Saved config data to ./api/${configName}.json`);
+    const configFinalize = () =>{
+      const configObjOutput = JSON.stringify(configObj, null, 2)
+      console.log( configObjOutput )
+      rl.question('Is this correct? (y/n)', (correct) => {
+        if(correct === 'y' || correct === '' ){
+          fs.writeFile(`./api/${configName}.json`, configObj, function(err) {
+            if(err) {
+              return console.log(err);
+            }
+
+            console.log(`Saved config data to ./api/${configName}.json`);
+            rl.close();
+          });
+        }else{
+          init(configObj);
+        }
       });
-      rl.close();
+
     }
+
     const configDatabase = () =>{
       rl.question('Database host : ', (host) => {
         configObj.db['host'] = host
@@ -81,27 +97,40 @@ const create = (function(){
           rl.question('Database password : ', (pass) => {
             configObj.db['password'] = pass
             rl.question('Database : ', (database) => {
-              configObj.db['database'] = database
-              configObj['routes'] = []
-              configRoute()
+              mysql.createConnection(database).connect((err) => {
+                if (err) {
+                  console.warn(`Error connecting to database '${database}'` );
+                } else {
+                  configObj.db['database'] = database
+                  configObj['routes'] = []
+                  configRoute()
+                }
+              });
+
             });
           });
         });
 
       });
     }
-    rl.question('Name : ', (name) => {
-      configName = name
-      rl.question('API prefix : ', (prefix) => {
-        configObj['prefix'] = prefix
-        rl.question('Port number : ', (port) => {
-          configObj['port'] = port
-          configObj['db'] = {}
-          configDatabase()
-        })
-      });
-    });
 
+    const init = function(obj){
+      obj ? configObj = obj : configObj = {}
+      rl.question('Name : ', (name) => {
+        configName = name
+        rl.question('API prefix : ', (prefix) => {
+          configObj['prefix'] = prefix
+          rl.question('Port number : ', (port) => {
+            configObj['port'] = port
+            configObj['db'] = {}
+            configDatabase()
+          })
+        });
+      });
+    }
+
+    console.log('Create JSON configuration file')
+    init();
 
 
 
@@ -145,7 +174,7 @@ const update = (function(){
 
         });
       }else{
-        console.log(`No configuration files in found, generate a new file with node api/tool -g config` )
+        console.log(`No configuration files in found, generate a new file with node api/tool -c config` )
         rl.close();
       }
     });

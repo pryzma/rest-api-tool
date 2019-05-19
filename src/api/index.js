@@ -17,23 +17,8 @@ const api = (function(){
     next()
   })
   // config
-  const config = process.argv[2]
-  ? JSON.parse(fs.readFileSync(`./api/${process.argv[2]}.json`, 'utf8'))
-  : {
-    db : {
-      host: 'localhost',
-      user: 'root',
-      password: 'root',
-      database: 'quiz'
-    },
-    routes : [
-      { route : 'players',
-        methods : [ 'get', 'delete', 'post', 'put' ],
-        key : 'id',
-        fields : ['name','score']
-      }
-    ]
-  }
+  const config = JSON.parse(fs.readFileSync(`./api/${process.argv[2]}.json`, 'utf8'))
+
 
 
   const connection = mysql.createConnection( config.db )
@@ -50,7 +35,7 @@ const api = (function(){
     const pre = config.prefix ? config.prefix : 'api'
 // get
 // .............................................................................
-    const getOne = ( route ) => {
+    const getOne = ( table, route ) => {
       app.get( `/${pre}/${route}`, function( req, res ) {
         route = route.split('/:')
         let key = +req.params[ route[1] ]
@@ -67,7 +52,7 @@ const api = (function(){
       });
     }
 
-    const getAll = ( route ) => {
+    const getAll = ( table, route ) => {
       app.get( `/${pre}/${route}`, function(req, res) {
 
         res.setHeader('Content-Type', 'application/json')
@@ -82,12 +67,12 @@ const api = (function(){
       });
     }
 
-  const _get = ( route ) => route.includes( '/:id' ) ? getOne( route ) : getAll( route )
+  const _get = ( table, route ) => route.includes( '/:id' ) ? getOne( table, route ) : getAll( table, route )
 
 
 // put
 // .............................................................................
-  const _put = (route, fields) => {
+  const _put = (table, route, fields) => {
     app.put(`/${pre}/${route}`, function(req, res) {
           route = route.split('/:')
           // First read id from params
@@ -133,7 +118,7 @@ const api = (function(){
 
   }
 // .............................................................................
-  const _post = (route) => {
+  const _post = (table, route) => {
     app.post(`/api/${route}`, function(req, res) {
 
 
@@ -162,7 +147,7 @@ const api = (function(){
 
   }
 // .............................................................................
-  const _delete = (route) => {
+  const _delete = (table, route) => {
     app.delete('/api/players/:id', function( req, res ) {
       let id =+req.params.id;
 
@@ -192,12 +177,12 @@ const setRoutes = (function(){
     for( let method of item.methods) {
 
       let fields = ( method === 'put') ? ' '+item.fields.join(',') : ''
-
+      let table = item.table
       let route = ( method === 'get' || method === 'delete' || method === 'put' )
       ? `${item.route}/:${item.key}`
       : item.route
       console.log( `api.set.${method} ${route} ${fields}`)
-      method === 'put' ? set[method](route,item.fields) :  set[method](route)
+      method === 'put' ? set[method](table,route,item.fields) :  set[method](table,route)
     }
   }
 
@@ -205,7 +190,7 @@ const setRoutes = (function(){
 
 
   const server = app.listen(parseInt(config.port,10), () => {
-    console.log( 'Server listening on port 8081')
+    console.log( `Server listening on port ${config.port}`)
   })
 
 })()
