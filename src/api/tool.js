@@ -90,43 +90,55 @@ const create = (function(){
     }
 
     const configDatabase = () =>{
-      rl.question('Database host : ', (host) => {
-        configObj.db['host'] = host
-
-        rl.question('Database user : ', (user) => {
-          configObj.db['user'] = user
-          rl.question('Database password : ', (pass) => {
-            configObj.db['password'] = pass
-            rl.question('Database : ', (database) => {
-              mysql.createConnection(database).connect((err) => {
-                if (err) {
-                  console.warn(`Error connecting to database '${database}'` );
-                } else {
-                  configObj.db['database'] = database
-                  configObj['routes'] = []
-                  configRoute()
-                }
-              });
+      configQuestion = configObj.db.host ? `Database host (${configObj.db.host}) : ` : 'Database host : '
+      rl.question(configQuestion, (host) => {
+        if(!host === '') configObj.db['host'] = host
+        configQuestion = configObj.db.user ? `Database user (${configObj.db.user}) : ` : 'Database user : '
+        rl.question(configQuestion, (user) => {
+          if(!user === '') configObj.db['user'] = user
+          configQuestion = configObj.db.password ? `Database password (${configObj.db.password}) : ` : 'Database password : '
+          rl.question(configQuestion, (pass) => {
+            if(!pass === '') configObj.db['password'] = pass
+            configQuestion = configObj.db.database ? `Database (${configObj.db.database}) : ` : 'Database : '
+            rl.question(configQuestion, (database) => {
+              let connObj = {
+                host : configObj.db.host,
+                user : configObj.db.user,
+                password : configObj.db.password,
+                database : databas
+              }
+              if(database === '' && configObj.db.database ){
+                configRoute()
+              }else{
+                mysql.createConnection(connObj).connect((err) => {
+                  if (err) {
+                    console.warn(`Error connecting to database '${database}'` );
+                  } else {
+                    configObj.db['database'] = database
+                    configObj['routes'] = []
+                    configRoute()
+                  }
+                });
+              }
 
             });
           });
         });
-
       });
     }
 
     const init = function(obj){
       obj ? configObj = obj : configObj = {}
-      configObj.name ? configQuestion = `Name (${configObj.name}) : ` : 'Name : '
+      configQuestion = configObj.name ? `Name (${configObj.name}) : ` : 'Name : '
       rl.question(configQuestion, (name) => {
         name === '' ? configName = configObj.name : configName = name
-        configObj.prefix ? configQuestion = `API prefix (${configObj.prefix}) : ` : 'API prefix : '
+        configQuestion = configObj.prefix ? `API prefix (${configObj.prefix}) : ` : 'API prefix : '
         rl.question(configQuestion, (prefix) => {
           if(!prefix === '') configObj['prefix'] = prefix
-          configObj.port ? configQuestion = `Port number (${configObj.prefix}) : ` : 'Port number : '
+          configQuestion = configObj.port ? `Port number (${configObj.prefix}) : ` : 'Port number : '
           rl.question(configQuestion, (port) => {
             if(!port === '') portconfigObj['port'] = port
-            configObj['db'] = {}
+            if(!configObj.db) configObj['db'] = {}
             configDatabase()
           })
         });
