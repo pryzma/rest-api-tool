@@ -15,7 +15,8 @@ const create = (function(){
 
 
     let configName;
-    let configObj = {}
+    let configObj;
+    let configQuestion;
 
     const configRouteFields = (configRouteObj) => {
       rl.question('Add field: ', (field) => {
@@ -116,12 +117,15 @@ const create = (function(){
 
     const init = function(obj){
       obj ? configObj = obj : configObj = {}
-      rl.question('Name : ', (name) => {
-        configName = name
-        rl.question('API prefix : ', (prefix) => {
-          configObj['prefix'] = prefix
-          rl.question('Port number : ', (port) => {
-            configObj['port'] = port
+      configObj.name ? configQuestion = `Name (${configObj.name}) : ` : 'Name : '
+      rl.question(configQuestion, (name) => {
+        name === '' ? configName = configObj.name : configName = name
+        configObj.prefix ? configQuestion = `API prefix (${configObj.prefix}) : ` : 'API prefix : '
+        rl.question(configQuestion, (prefix) => {
+          if(!prefix === '') configObj['prefix'] = prefix
+          configObj.port ? configQuestion = `Port number (${configObj.prefix}) : ` : 'Port number : '
+          rl.question(configQuestion, (port) => {
+            if(!port === '') portconfigObj['port'] = port
             configObj['db'] = {}
             configDatabase()
           })
