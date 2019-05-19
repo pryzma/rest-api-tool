@@ -13,9 +13,10 @@ const create = (function(){
 
   const config = () => {
 
-    console.log('Create JSON configuration file')
+
     let configName;
     let configObj = {}
+
     const configRouteFields = (configRouteObj) => {
       rl.question('Add field: ', (field) => {
         if( field != '' ){
@@ -28,6 +29,7 @@ const create = (function(){
 
       })
     }
+
     const configRoute = () => {
       let configRouteObj = {}
       rl.question('Route : ', (route) => {
@@ -65,18 +67,27 @@ const create = (function(){
         })
       })
     }
-    const configFinalize = () =>{
-      configObj = JSON.stringify(configObj, null, 2)
-      console.log( configObj )
-      fs.writeFile(`./api/${configName}.json`, configObj, function(err) {
-        if(err) {
-          return console.log(err);
-        }
 
-        console.log(`Saved config data to ./api/${configName}.json`);
+    const configFinalize = () =>{
+      const configObjOutput = JSON.stringify(configObj, null, 2)
+      console.log( configObjOutput )
+      rl.question('Is this correct? (y/n)', (correct) => {
+        if(correct === 'y' || correct === '' ){
+          fs.writeFile(`./api/${configName}.json`, configObj, function(err) {
+            if(err) {
+              return console.log(err);
+            }
+
+            console.log(`Saved config data to ./api/${configName}.json`);
+            rl.close();
+          });
+        }else{
+          init(configObj);
+        }
       });
-      rl.close();
+
     }
+
     const configDatabase = () =>{
       rl.question('Database host : ', (host) => {
         configObj.db['host'] = host
@@ -102,18 +113,24 @@ const create = (function(){
 
       });
     }
-    rl.question('Name : ', (name) => {
-      configName = name
-      rl.question('API prefix : ', (prefix) => {
-        configObj['prefix'] = prefix
-        rl.question('Port number : ', (port) => {
-          configObj['port'] = port
-          configObj['db'] = {}
-          configDatabase()
-        })
-      });
-    });
 
+    const init = function(obj){
+      obj ? configObj = obj : configObj = {}
+      rl.question('Name : ', (name) => {
+        configName = name
+        rl.question('API prefix : ', (prefix) => {
+          configObj['prefix'] = prefix
+          rl.question('Port number : ', (port) => {
+            configObj['port'] = port
+            configObj['db'] = {}
+            configDatabase()
+          })
+        });
+      });
+    }
+
+    console.log('Create JSON configuration file')
+    init();
 
 
 
