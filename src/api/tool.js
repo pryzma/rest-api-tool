@@ -88,12 +88,13 @@ const create = (function(){
             rl.question('Database : ', (database) => {
               mysql.createConnection(database).connect((err) => {
                 if (err) {
-                  console.warn(`Error connecting to database '${}'` );
+                  console.warn(`Error connecting to database '${database}'` );
                 } else {
                   configObj.db['database'] = database
                   configObj['routes'] = []
                   configRoute()
                 }
+              });
 
             });
           });
