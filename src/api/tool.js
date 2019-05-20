@@ -8,6 +8,8 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
+const pckg = JSON.parse(fs.readFileSync(`../package.json`, 'utf8'))
+
 const create = (function(){
 
 
@@ -318,11 +320,12 @@ const application = (function(){
   })(),
   isNode = (() => endpoint[0].includes( 'node' ))()
   let path = endpoint[1].split('\\')
+
   let pos = path.length-1
 
   if( isNode ){
     //const minimist = require('minimist')
-    console.log('REST API Tool 1.4.2')
+    console.log(`${pckg.name} ${pckg.version}`)
     if( endpoint[2] ){
       run()
     }else{
